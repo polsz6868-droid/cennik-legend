@@ -107,6 +107,13 @@ function logowanie(blad) {
 // a przy każdym wejściu serwer wysyła same dane. Strona otwiera się od razu z kopii, a świeże dane dociągają się w tle.
 var K_DANE = 'cl_strona', K_SZK = 'cl_szk', K_SZKV = 'cl_szk_v';
 function zloz(szk, skrypt) { var i = szk.indexOf('</head>'); return szk.slice(0, i) + '<script>' + skrypt + '<\/script>' + szk.slice(i); }
+// numer wersji jest zapisany w samym wyglądzie (nie osobno), więc nie może się rozjechać z treścią
+function wersjaZ(szk) { var m = szk && szk.match(/\x3c!--wersja:([\w-]+)--\x3e\s*$/); return m ? m[1] : null; }
+function zapiszSzk(h) {
+  try { localStorage.setItem(K_SZK, h); return; } catch (e) {}
+  // brak miejsca: zwolnij stare dane i spróbuj jeszcze raz
+  try { localStorage.removeItem(K_SZK); localStorage.removeItem(K_DANE); localStorage.removeItem(K_SZKV); localStorage.setItem(K_SZK, h); } catch (e) {}
+}
 function czytajDane() { try { var d = JSON.parse(ls(K_DANE) || 'null'); return d && d.v && typeof d.skrypt === 'string' ? d : null; } catch (e) { return null; } }
 function pobierz(s, format) {
   return fetch(API + '?format=' + format + '&s=' + encodeURIComponent(s)).then(function (r) {
@@ -115,8 +122,8 @@ function pobierz(s, format) {
   }).then(function (t) { if (t.indexOf('BRAK_DOSTEPU') === 0) throw {brak: 1}; return t; });
 }
 function pobierzStrone(s) {
-  var szk = ls(K_SZK), szkV = ls(K_SZKV);
-  if (!szk || szk.indexOf('<html') < 0) szk = null;
+  var szk = ls(K_SZK), szkV = wersjaZ(szk);
+  if (!szk || szk.indexOf('<html') < 0 || !szkV) szk = null;
   // bez zapisanego wyglądu: dane i wygląd pobieramy naraz
   var wyglad = szk ? null : pobierz(s, 'szkielet');
   return pobierz(s, 'dane').then(function (t) {
@@ -125,14 +132,14 @@ function pobierzStrone(s) {
     if (szk && szkV === d.v) return {d: d, t: t, szk: szk};
     return (wyglad || pobierz(s, 'szkielet')).then(function (h) {
       if (h.indexOf('<html') < 0) throw new Error('nieoczekiwana odpowiedź');
-      ls(K_SZK, h); ls(K_SZKV, d.v);
+      zapiszSzk(h);
       return {d: d, t: t, szk: h};
     });
   });
 }
 function odswiezWTle() {
   var s = ls('cl_sesja'); if (!s) { ls(K_DANE, null); location.reload(); return; }
-  var ruszal = false, staraT = ls(K_DANE), staraV = ls(K_SZKV);
+  var ruszal = false, staraT = ls(K_DANE), staraV = wersjaZ(ls(K_SZK));
   ['keydown', 'pointerdown', 'input', 'wheel', 'touchstart'].forEach(function (ev) { document.addEventListener(ev, function () { ruszal = true; }, true); });
   pobierzStrone(s).then(function (w) {
     ls(K_DANE, w.t); ls('cl_strona_s', s);
@@ -147,7 +154,7 @@ function pokaz(html, zKopii) {
   if (zKopii) {
     // do strony z kopii dokładamy odświeżanie w tle (z tymi samymi funkcjami co tutaj)
     var kod = 'var API=' + JSON.stringify(API) + ',K_DANE="cl_strona",K_SZK="cl_szk",K_SZKV="cl_szk_v";' +
-      [ls, zloz, pobierz, pobierzStrone, odswiezWTle].map(String).join('\n') + '\nodswiezWTle();';
+      [ls, wersjaZ, zapiszSzk, zloz, pobierz, pobierzStrone, odswiezWTle].map(String).join('\n') + '\nodswiezWTle();';
     var k = html.lastIndexOf('</body>'); if (k < 0) k = html.length;
     html = html.slice(0, k) + '<script>' + kod.replace(/<\//g, '<\\/') + '<\/script>' + html.slice(k);
   }
@@ -157,7 +164,8 @@ function zaladuj() {
   var s = ls('cl_sesja');
   if (!s) { ls(K_DANE, null); return logowanie(); }
   var d = czytajDane(), szk = ls(K_SZK);
-  if (d && szk && szk.indexOf('<html') >= 0 && ls(K_SZKV) === d.v && ls('cl_strona_s') === s) {
+  ls(K_SZKV, null); // stary sposób zapisu wersji – już nieużywany
+  if (d && szk && szk.indexOf('<html') >= 0 && wersjaZ(szk) === d.v && ls('cl_strona_s') === s) {
     // podmiana dokumentu dopiero po wczytaniu strony startowej (inaczej np. Safari potrafi wisieć)
     var html = zloz(szk, d.skrypt), pokazKopie = function () { setTimeout(function () { pokaz(html, true); }, 0); };
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', pokazKopie); else pokazKopie();
