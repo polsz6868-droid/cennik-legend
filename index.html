@@ -78,45 +78,74 @@ function logowanie(blad) {
       '&scope=' + encodeURIComponent('identify guilds.members.read') + '&state=' + encodeURIComponent(cel || 'herosi');
   };
 }
-// Strona otwiera się od razu z kopii zapisanej w przeglądarce, a świeża wersja dociąga się w tle.
-function pokaz(html, zKopii) {
-  if (zKopii) html = html.replace('</body>', '<script>(' + odswiezWTle.toString() + ')(' + JSON.stringify(API) + ');<\/script></body>');
-  document.open(); document.write(html); document.close(); document.title = 'Afkersi · Strona klanowa';
+// Szybkie ładowanie: wygląd strony (szkielet) jest zapisany w przeglądarce i pobiera się tylko po zmianie wersji,
+// a przy każdym wejściu serwer wysyła same dane. Strona otwiera się od razu z kopii, a świeże dane dociągają się w tle.
+var K_DANE = 'cl_strona', K_SZK = 'cl_szk', K_SZKV = 'cl_szk_v';
+function zloz(szk, skrypt) { var i = szk.indexOf('</head>'); return szk.slice(0, i) + '<script>' + skrypt + '<\/script>' + szk.slice(i); }
+function czytajDane() { try { var d = JSON.parse(ls(K_DANE) || 'null'); return d && d.v && typeof d.skrypt === 'string' ? d : null; } catch (e) { return null; } }
+function pobierz(s, format) {
+  return fetch(API + '?format=' + format + '&s=' + encodeURIComponent(s)).then(function (r) {
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    return r.text();
+  }).then(function (t) { if (t.indexOf('BRAK_DOSTEPU') === 0) throw {brak: 1}; return t; });
 }
-function odswiezWTle(API) {
-  function ls(k, v) { try { if (v === undefined) return localStorage.getItem(k); if (v === null) localStorage.removeItem(k); else localStorage.setItem(k, v); } catch (e) {} return null; }
-  var s = ls('cl_sesja'); if (!s) { ls('cl_strona', null); location.reload(); return; }
-  var ruszal = false;
+function pobierzStrone(s) {
+  var szk = ls(K_SZK), szkV = ls(K_SZKV);
+  if (!szk || szk.indexOf('<html') < 0) szk = null;
+  // bez zapisanego wyglądu: dane i wygląd pobieramy naraz
+  var wyglad = szk ? null : pobierz(s, 'szkielet');
+  return pobierz(s, 'dane').then(function (t) {
+    var d = JSON.parse(t);
+    if (!d.ok) throw new Error(d.blad || 'błąd serwera');
+    if (szk && szkV === d.v) return {d: d, t: t, szk: szk};
+    return (wyglad || pobierz(s, 'szkielet')).then(function (h) {
+      if (h.indexOf('<html') < 0) throw new Error('nieoczekiwana odpowiedź');
+      ls(K_SZK, h); ls(K_SZKV, d.v);
+      return {d: d, t: t, szk: h};
+    });
+  });
+}
+function odswiezWTle() {
+  var s = ls('cl_sesja'); if (!s) { ls(K_DANE, null); location.reload(); return; }
+  var ruszal = false, staraT = ls(K_DANE), staraV = ls(K_SZKV);
   ['keydown', 'pointerdown', 'input', 'wheel', 'touchstart'].forEach(function (ev) { document.addEventListener(ev, function () { ruszal = true; }, true); });
-  fetch(API + '?format=strona&s=' + encodeURIComponent(s)).then(function (r) { return r.text(); }).then(function (html) {
-    if (html.indexOf('BRAK_DOSTEPU') === 0) { ls('cl_sesja', null); ls('cl_strona', null); location.reload(); return; }
-    if (html.indexOf('<html') < 0) return;
-    var stary = ls('cl_strona'); ls('cl_strona', html); ls('cl_strona_s', s);
-    if (stary === html) return;
-    if (!ruszal) { var y = window.scrollY; document.open(); document.write(html); document.close(); setTimeout(function () { window.scrollTo(0, y); }, 300); return; }
-    // użytkownik już coś klika – nowsza wersja jest zapisana i pokaże się przy następnym wejściu (bez wyskakującego okienka)
-  }).catch(function () {});
+  pobierzStrone(s).then(function (w) {
+    ls(K_DANE, w.t); ls('cl_strona_s', s);
+    if (w.t === staraT && w.d.v === staraV) return;
+    // użytkownik już coś klika – nowsze dane są zapisane i pokażą się przy następnym wejściu
+    if (ruszal) return;
+    var y = window.scrollY; document.open(); document.write(zloz(w.szk, w.d.skrypt)); document.close();
+    setTimeout(function () { window.scrollTo(0, y); }, 300);
+  }).catch(function (e) { if (e && e.brak) { ls('cl_sesja', null); ls(K_DANE, null); location.reload(); } });
+}
+function pokaz(html, zKopii) {
+  if (zKopii) {
+    // do strony z kopii dokładamy odświeżanie w tle (z tymi samymi funkcjami co tutaj)
+    var kod = 'var API=' + JSON.stringify(API) + ',K_DANE="cl_strona",K_SZK="cl_szk",K_SZKV="cl_szk_v";' +
+      [ls, zloz, pobierz, pobierzStrone, odswiezWTle].map(String).join('\n') + '\nodswiezWTle();';
+    var k = html.lastIndexOf('</body>'); if (k < 0) k = html.length;
+    html = html.slice(0, k) + '<script>' + kod.replace(/<\//g, '<\\/') + '<\/script>' + html.slice(k);
+  }
+  document.open(); document.write(html); document.close(); document.title = 'Afkersi · Strona klanowa';
 }
 function zaladuj() {
   var s = ls('cl_sesja');
-  if (!s) { ls('cl_strona', null); return logowanie(); }
-  var kopia = ls('cl_strona');
-  if (kopia && ls('cl_strona_s') === s && kopia.indexOf('<html') >= 0) {
+  if (!s) { ls(K_DANE, null); return logowanie(); }
+  var d = czytajDane(), szk = ls(K_SZK);
+  if (d && szk && szk.indexOf('<html') >= 0 && ls(K_SZKV) === d.v && ls('cl_strona_s') === s) {
     // podmiana dokumentu dopiero po wczytaniu strony startowej (inaczej np. Safari potrafi wisieć)
-    var pokazKopie = function () { setTimeout(function () { pokaz(kopia, true); }, 0); };
+    var html = zloz(szk, d.skrypt), pokazKopie = function () { setTimeout(function () { pokaz(html, true); }, 0); };
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', pokazKopie); else pokazKopie();
     return;
   }
   czekaj('Wczytywanie strony klanu…');
-  fetch(API + '?format=strona&s=' + encodeURIComponent(s))
-    .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.text(); })
-    .then(function (html) {
-      if (html.indexOf('BRAK_DOSTEPU') === 0) { ls('cl_sesja', null); ls('cl_strona', null); return logowanie('Sesja wygasła – zaloguj się ponownie.'); }
-      if (html.indexOf('<html') < 0) throw new Error('nieoczekiwana odpowiedź');
-      ls('cl_strona', html); ls('cl_strona_s', s);
-      pokaz(html, false);
-    })
-    .catch(function (e) { logowanie('Nie udało się wczytać strony (' + e.message + '). Spróbuj odświeżyć.'); });
+  pobierzStrone(s).then(function (w) {
+    ls(K_DANE, w.t); ls('cl_strona_s', s);
+    pokaz(zloz(w.szk, w.d.skrypt), false);
+  }).catch(function (e) {
+    if (e && e.brak) { ls('cl_sesja', null); ls(K_DANE, null); return logowanie('Sesja wygasła – zaloguj się ponownie.'); }
+    logowanie('Nie udało się wczytać strony (' + (e && e.message || e) + '). Spróbuj odświeżyć.');
+  });
 }
 (function start() {
   var h = location.hash || '';
