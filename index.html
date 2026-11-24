@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Afkersi · Strona klanowa</title>
+<link rel="icon" type="image/svg+xml" href="icon.svg">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="manifest" href="manifest.webmanifest">
+<!-- podgląd linku na Discordzie / Messengerze (kolor paska z theme-color) -->
+<meta name="theme-color" content="#e8c46a">
+<meta name="description" content="Strona klanowa Afkersi (Margonem, Lelwani): cennik legend, kolejki do tytanów, oferty graczy, składki i regulamin.">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Afkersi · Strona klanowa">
+<meta property="og:title" content="Afkersi – strona klanowa">
+<meta property="og:description" content="Cennik legend, kolejki do tytanów, oferty graczy, składki i regulamin klanu. Zaloguj się przez Discorda.">
+<meta property="og:url" content="https://polsz6868-droid.github.io/cennik-legend/">
+<meta property="og:image" content="https://polsz6868-droid.github.io/cennik-legend/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Afkersi – strona klanowa">
+<meta property="og:locale" content="pl_PL">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://polsz6868-droid.github.io/cennik-legend/og-image.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Afkersi">
+<meta name="description" content="Strona klanowa Afkersi – cennik legend, kolejki do tytanów, depozyt, składki i regulamin. Tylko dla członków klanu.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://script.google.com">
+<link rel="preconnect" href="https://script.googleusercontent.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  html,body{margin:0;min-height:100%;background:#0d0f14;color:#e7e9ef;font-family:Inter,system-ui,-apple-system,'Segoe UI',Roboto,Arial,sans-serif;-webkit-font-smoothing:antialiased}
+  #ekran{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:30px 18px;box-sizing:border-box;text-align:center}
+  .logo{font:800 44px Cinzel,Georgia,serif;letter-spacing:4px;color:#e8c46a;line-height:1.1}
+  .pod{font:500 12px Inter,system-ui,sans-serif;letter-spacing:2px;color:#8f97aa;margin-top:-8px}
+  .karta{max-width:420px;width:100%;box-sizing:border-box;background:#151922;border:1px solid #232938;border-radius:16px;box-shadow:0 1px 2px rgba(0,0,0,.35),0 18px 40px -18px rgba(0,0,0,.7);padding:28px 26px}
+  .karta h2{font:700 19px/1.3 Inter,system-ui,sans-serif;letter-spacing:-.2px;color:#e7e9ef;margin:0 0 8px}
+  .karta p{font-size:14px;line-height:1.6;margin:0 0 20px;color:#8f97aa}
+  .karta p b{color:#e7e9ef;font-weight:600}
+  .dc{display:inline-flex;align-items:center;justify-content:center;gap:10px;font:600 15px Inter,system-ui,sans-serif;color:#fff;background:#5865f2;border:none;border-radius:10px;padding:12px 24px;min-height:46px;cursor:pointer;transition:filter .15s,transform .15s}
+  .dc:hover{filter:brightness(1.08)}
+  .dc:active{transform:translateY(1px)}
+  .dc:focus-visible{outline:2px solid #e8c46a;outline-offset:3px}
+  .dc svg{width:22px;height:22px;fill:#fff}
+  .blad{color:#ff8a7a;font-size:13px;margin:0 0 16px;padding:9px 12px;border-radius:10px;background:rgba(239,90,76,.1);border:1px solid rgba(239,90,76,.3)}
+  .mala{font-size:12px;color:#6b7385;margin-top:16px;line-height:1.5}
+  .kolo{width:34px;height:34px;border:3px solid #323a4f;border-top-color:#e8c46a;border-radius:50%;animation:o .9s linear infinite}
+  @keyframes o{to{transform:rotate(360deg)}}
+  .t{font-size:14px;font-weight:500;color:#8f97aa}
+  @media(max-width:480px){.logo{font-size:34px}.karta{padding:24px 20px}}
+  @media(prefers-reduced-motion:reduce){.kolo{animation-duration:2.5s}.dc{transition:none}}
+</style>
+</head>
+<body>
+<div id="ekran"><div class="kolo"></div><div class="t">Wczytywanie…</div></div>
+<script>
+// Strona klanu: dane pobierane ze skryptu Google (Apps Script) – tylko po zalogowaniu przez Discord (serwer Armia Basa).
+var API = 'https://script.google.com/macros/s/AKfycbzSRNsUj6ps2-uSCuPPimz_p6-CDQBxsiJOczW7xSfwvjshSzQFCdWuib0oL7ugApkCmg/exec';
+var CLIENT_ID = '1574690366924263575';
+var DC = '<svg viewBox="0 0 24 24"><path d="M20.3 4.4A19.8 19.8 0 0 0 15.4 3l-.6 1.3a18.3 18.3 0 0 0-5.6 0L8.6 3a19.7 19.7 0 0 0-4.9 1.5C.5 9.2-.3 13.8.1 18.3a19.9 19.9 0 0 0 6 3l1.3-2.1a12.9 12.9 0 0 1-2-1l.5-.4a14.2 14.2 0 0 0 12.2 0l.5.4c-.6.4-1.3.7-2 1l1.3 2.1a19.8 19.8 0 0 0 6-3c.5-5.2-.9-9.8-3.6-13.9zM8 15.5c-1.2 0-2.2-1.1-2.2-2.4S6.8 10.7 8 10.7s2.2 1.1 2.2 2.4-1 2.4-2.2 2.4zm8 0c-1.2 0-2.2-1.1-2.2-2.4s1-2.4 2.2-2.4 2.2 1.1 2.2 2.4-1 2.4-2.2 2.4z"/></svg>';
+function ls(k, v) { try { if (v === undefined) return localStorage.getItem(k); if (v === null) localStorage.removeItem(k); else localStorage.setItem(k, v); } catch (e) {} return null; }
+function ekran(html) { document.getElementById('ekran').innerHTML = html; }
+function czekaj(t) { ekran('<div class="kolo"></div><div class="t">' + t + '</div>'); }
+function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return {'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;'}[c]; }); }
+function logowanie(blad) {
+  ekran('<div class="logo">Afkersi</div><div class="pod">STRONA KLANOWA</div>' +
+    '<div class="karta"><h2>Zaloguj się do Discord, aby zobaczyć</h2><p>Strona jest dostępna tylko dla członków serwera <b>Armia Basa</b>.</p>' +
+    (blad ? '<div class="blad">' + esc(blad) + '</div>' : '') +
+    '<button class="dc" id="zaloguj">' + DC + 'Zaloguj przez Discord</button>' +
+    '<div class="mala">Strona nie dostaje dostępu do Twoich wiadomości ani hasła.<br>Logowanie pamiętamy przez 14 dni.</div><div class="mala" style="margin-top:8px">Stworzone przez <b style="color:#e8c46a">Gwarek</b></div></div>');
+  document.getElementById('zaloguj').onclick = function () {
+    var cel = (location.hash || '').slice(1);
+    location.href = 'https://discord.com/oauth2/authorize?client_id=' + CLIENT_ID + '&response_type=token&prompt=none' +
+      '&redirect_uri=' + encodeURIComponent(location.origin + location.pathname) +
+      '&scope=' + encodeURIComponent('identify guilds.members.read') + '&state=' + encodeURIComponent(cel || 'herosi');
+  };
+}
+// Strona otwiera się od razu z kopii zapisanej w przeglądarce, a świeża wersja dociąga się w tle.
+function pokaz(html, zKopii) {
+  if (zKopii) html = html.replace('</body>', '<script>(' + odswiezWTle.toString() + ')(' + JSON.stringify(API) + ');<\/script></body>');
+  document.open(); document.write(html); document.close(); document.title = 'Afkersi · Strona klanowa';
+}
+function odswiezWTle(API) {
+  function ls(k, v) { try { if (v === undefined) return localStorage.getItem(k); if (v === null) localStorage.removeItem(k); else localStorage.setItem(k, v); } catch (e) {} return null; }
+  var s = ls('cl_sesja'); if (!s) { ls('cl_strona', null); location.reload(); return; }
+  var ruszal = false;
+  ['keydown', 'pointerdown', 'input', 'wheel', 'touchstart'].forEach(function (ev) { document.addEventListener(ev, function () { ruszal = true; }, true); });
+  fetch(API + '?format=strona&s=' + encodeURIComponent(s)).then(function (r) { return r.text(); }).then(function (html) {
+    if (html.indexOf('BRAK_DOSTEPU') === 0) { ls('cl_sesja', null); ls('cl_strona', null); location.reload(); return; }
+    if (html.indexOf('<html') < 0) return;
+    var stary = ls('cl_strona'); ls('cl_strona', html); ls('cl_strona_s', s);
+    if (stary === html) return;
+    if (!ruszal) { var y = window.scrollY; document.open(); document.write(html); document.close(); setTimeout(function () { window.scrollTo(0, y); }, 300); return; }
+    // użytkownik już coś klika – nowsza wersja jest zapisana i pokaże się przy następnym wejściu (bez wyskakującego okienka)
+  }).catch(function () {});
+}
+function zaladuj() {
+  var s = ls('cl_sesja');
+  if (!s) { ls('cl_strona', null); return logowanie(); }
+  var kopia = ls('cl_strona');
+  if (kopia && ls('cl_strona_s') === s && kopia.indexOf('<html') >= 0) {
+    // podmiana dokumentu dopiero po wczytaniu strony startowej (inaczej np. Safari potrafi wisieć)
+    var pokazKopie = function () { setTimeout(function () { pokaz(kopia, true); }, 0); };
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', pokazKopie); else pokazKopie();
+    return;
+  }
+  czekaj('Wczytywanie strony klanu…');
+  fetch(API + '?format=strona&s=' + encodeURIComponent(s))
+    .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.text(); })
+    .then(function (html) {
+      if (html.indexOf('BRAK_DOSTEPU') === 0) { ls('cl_sesja', null); ls('cl_strona', null); return logowanie('Sesja wygasła – zaloguj się ponownie.'); }
+      if (html.indexOf('<html') < 0) throw new Error('nieoczekiwana odpowiedź');
+      ls('cl_strona', html); ls('cl_strona_s', s);
+      pokaz(html, false);
+    })
+    .catch(function (e) { logowanie('Nie udało się wczytać strony (' + e.message + '). Spróbuj odświeżyć.'); });
+}
+(function start() {
+  var h = location.hash || '';
+  if (h.indexOf('access_token=') < 0 && h.indexOf('error=') < 0) return zaladuj();
+  var p = {};
+  h.slice(1).split('&').forEach(function (x) { var i = x.indexOf('='); if (i > 0) p[decodeURIComponent(x.slice(0, i))] = decodeURIComponent(x.slice(i + 1).replace(/\+/g, ' ')); });
+  try { history.replaceState(null, '', location.pathname + (p.state ? '#' + p.state : '')); } catch (e) {}
+  if (!p.access_token) return logowanie(p.error === 'access_denied' ? 'Logowanie anulowane.' : 'Discord odrzucił logowanie (' + (p.error_description || p.error) + ').');
+  czekaj('Sprawdzam konto Discord…');
+  fetch(API + '?format=login&dc=' + encodeURIComponent(p.access_token))
+    .then(function (r) { return r.json(); })
+    .then(function (j) { if (j.ok) { ls('cl_sesja', j.sesja); zaladuj(); } else logowanie(j.blad || 'Nie udało się zalogować.'); })
+    .catch(function (e) { logowanie('Błąd połączenia (' + e.message + '). Spróbuj ponownie.'); });
+})();
+</script>
+</body>
+</html>
