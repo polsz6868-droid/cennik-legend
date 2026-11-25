@@ -33,7 +33,9 @@
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   html,body{margin:0;min-height:100%;background:#0d0f14;color:#e7e9ef;font-family:Inter,system-ui,-apple-system,'Segoe UI',Roboto,Arial,sans-serif;-webkit-font-smoothing:antialiased}
-  #ekran{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:30px 18px;box-sizing:border-box;text-align:center}
+  #ekran{background:linear-gradient(rgba(13,15,20,.35),#0d0f14 62%),url(ikony/tlo.jpg) center top/100% auto no-repeat;
+  min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:30px 18px;box-sizing:border-box;text-align:center}
+  .herb{display:block;width:88px;height:88px;margin:0 auto -6px;filter:drop-shadow(0 6px 14px rgba(0,0,0,.65))}
   .logo{font:800 44px Cinzel,Georgia,serif;letter-spacing:4px;color:#e8c46a;line-height:1.1}
   .pod{font:500 12px Inter,system-ui,sans-serif;letter-spacing:2px;color:#8f97aa;margin-top:-8px}
   .karta{max-width:420px;width:100%;box-sizing:border-box;background:#151922;border:1px solid #232938;border-radius:16px;box-shadow:0 1px 2px rgba(0,0,0,.35),0 18px 40px -18px rgba(0,0,0,.7);padding:28px 26px}
@@ -52,7 +54,7 @@
   .t{font-size:14px;font-weight:500;color:#8f97aa}
   /* szkielet ładowania – zarys strony z połyskiem zamiast kółka */
   #ekran.sk{justify-content:flex-start;gap:0;padding:30px 12px}
-  .sk .logo{margin-top:52px}
+  .sk .herb{margin-top:34px}
   .sk-bar{width:100%;max-width:1200px;margin:22px auto 0;padding:10px;border:1px solid #232938;border-radius:14px;background:#151922;display:flex;flex-wrap:wrap;gap:8px;justify-content:center;box-sizing:border-box}
   .sk-bar i{height:34px;flex:1 1 90px;max-width:160px}
   .sk-st{font:500 12px Inter,system-ui,sans-serif;color:#6b7385;margin:12px 0 0;min-height:16px}
@@ -65,7 +67,7 @@
   .sk i,.sk .p,.sk .l{display:block;border-radius:9px;background:linear-gradient(90deg,#1b2030 0%,#252b3c 40%,#1b2030 80%);background-size:300% 100%;animation:sh 1.4s ease-in-out infinite}
   .sk .l{height:11px;border-radius:6px;margin:6px 0}
   @keyframes sh{from{background-position:100% 0}to{background-position:0 0}}
-  @media(max-width:480px){.sk-grid{grid-template-columns:1fr}.sk .logo{margin-top:30px}.sk-bar i{flex-basis:70px}}
+  @media(max-width:480px){.sk-grid{grid-template-columns:1fr}.sk .herb{margin-top:20px}.sk-bar i{flex-basis:70px}}
   @media(prefers-reduced-motion:reduce){.sk i,.sk .p,.sk .l{animation:none}}
   @media(max-width:480px){.logo{font-size:34px}.karta{padding:24px 20px}}
   @media(prefers-reduced-motion:reduce){.kolo{animation-duration:2.5s}.dc{transition:none}}
@@ -87,11 +89,11 @@ function czekaj(t) {
   for (var n = 0; n < 4; n++) k += '<div class="sk-card"><div class="sk-top"><div class="p"></div><div style="flex:1"><div class="l" style="width:50%;height:15px"></div><div class="l" style="width:28%"></div></div></div>' + it + '</div>';
   var b = ''; for (var m = 0; m < 7; m++) b += '<i></i>';
   el.className = 'sk';
-  el.innerHTML = '<div class="logo">Afkersi</div><div class="pod" style="margin-top:6px">STRONA KLANOWA</div><div class="sk-bar">' + b + '</div><div class="sk-st">' + (t || '') + '</div><div class="sk-grid">' + k + '</div>';
+  el.innerHTML = '<img class="herb" src="ikony/herb.png" alt=""><div class="logo">Afkersi</div><div class="pod" style="margin-top:6px">STRONA KLANOWA</div><div class="sk-bar">' + b + '</div><div class="sk-st">' + (t || '') + '</div><div class="sk-grid">' + k + '</div>';
 }
 function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return {'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;'}[c]; }); }
 function logowanie(blad) {
-  ekran('<div class="logo">Afkersi</div><div class="pod">STRONA KLANOWA</div>' +
+  ekran('<img class="herb" src="ikony/herb.png" alt=""><div class="logo">Afkersi</div><div class="pod">STRONA KLANOWA</div>' +
     '<div class="karta"><h2>Zaloguj się do Discord, aby zobaczyć</h2><p>Strona jest dostępna tylko dla członków serwera <b>Armia Basa</b>.</p>' +
     (blad ? '<div class="blad">' + esc(blad) + '</div>' : '') +
     '<button class="dc" id="zaloguj">' + DC + 'Zaloguj przez Discord</button>' +
